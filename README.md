@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>qlashx — reversing &amp; mobile security</title>
+<title>qlashx</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#14171c;
-    --panel:#1a1e24;
     --line:#2a2f38;
     --text:#d7dbe0;
     --muted:#7f8792;
@@ -18,124 +17,128 @@
     --amber-dim:#b9823f;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
   body{
     background:var(--bg);
     color:var(--text);
-    font-family:"Newsreader",Georgia,serif;
-    font-size:18px;
-    line-height:1.6;
+    font-family:"JetBrains Mono",monospace;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
     -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
   }
-  a{color:inherit;text-decoration:none}
-  .wrap{max-width:720px;margin:0 auto;padding:0 24px}
 
-  /* header */
-  header{border-bottom:1px solid var(--line);padding:40px 0 28px}
-  .brand{
+  /* subtle grid backdrop */
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:52px 52px;
+    opacity:.15;
+    -webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 45%,#000 30%,transparent 80%);
+            mask-image:radial-gradient(ellipse 80% 70% at 50% 45%,#000 30%,transparent 80%);
+    pointer-events:none;
+  }
+
+  /* top bar */
+  .topbar{
+    position:relative;z-index:2;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:30px 40px;
+    font-size:15px;color:var(--muted);
+  }
+  .topbar .status{display:flex;align-items:center;gap:9px;font-size:14px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);
+       box-shadow:0 0 8px var(--amber);animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.4}}
+  .topbar nav{display:flex;gap:34px}
+  .topbar nav a{
+    color:var(--muted);text-decoration:none;transition:.15s;
+    font-size:15px;letter-spacing:.3px;padding-bottom:3px;
+    border-bottom:1px solid transparent;
+  }
+  .topbar nav a:hover{color:var(--amber)}
+  .topbar nav a.active{color:var(--text);border-color:var(--amber-dim)}
+  .topbar nav a.soon{opacity:.5;cursor:default}
+  .topbar nav a.soon:hover{color:var(--muted)}
+
+  /* hero */
+  main{
+    position:relative;z-index:2;
+    flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    text-align:center;padding:40px 24px;
+  }
+  h1{
     font-family:"JetBrains Mono",monospace;
     font-weight:700;
-    font-size:20px;
-    letter-spacing:-0.5px;
-    color:var(--text);
-    display:inline-flex;align-items:baseline;gap:2px;
+    font-size:clamp(46px,12vw,100px);
+    letter-spacing:-2px;
+    line-height:1;
+    color:#eef1f4;
+    display:inline-flex;align-items:baseline;
+    opacity:0;animation:rise .6s ease .1s forwards;
   }
-  .brand .prompt{color:var(--amber)}
-  .brand .cursor{
-    display:inline-block;width:9px;height:18px;background:var(--amber);
-    margin-left:4px;transform:translateY(2px);
+  h1 .prompt{color:var(--amber);margin-right:2px}
+  h1 .cursor{
+    display:inline-block;width:.5ch;height:.9em;background:var(--amber);
+    margin-left:.06em;transform:translateY(.05em);
     animation:blink 1.1s steps(1) infinite;
   }
   @keyframes blink{50%{opacity:0}}
-  .tag{
-    font-family:"JetBrains Mono",monospace;
-    font-size:13px;color:var(--muted);margin-top:12px;letter-spacing:0.2px;
-  }
-  nav{margin-top:20px;display:flex;gap:20px}
-  nav a{
-    font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--muted);
-    padding-bottom:2px;border-bottom:1px solid transparent;transition:.15s;
-  }
-  nav a:hover{color:var(--amber);border-color:var(--amber-dim)}
 
-  /* intro */
-  .intro{padding:36px 0 8px;color:var(--muted);font-size:17px}
-  .intro b{color:var(--text);font-weight:500}
+  .tagline{
+    font-family:"Newsreader",serif;
+    font-size:clamp(18px,3.6vw,24px);
+    color:var(--muted);
+    margin-top:30px;max-width:540px;line-height:1.5;
+    opacity:0;animation:rise .6s ease .28s forwards;
+  }
+  .tagline .type{color:var(--text)}
 
-  /* post list */
-  .posts{padding:16px 0 64px}
-  .list-label{
-    font-family:"JetBrains Mono",monospace;font-size:12px;text-transform:uppercase;
-    letter-spacing:2px;color:var(--muted);padding:24px 0 4px;
-    border-bottom:1px solid var(--line);margin-bottom:8px;
-  }
-  .post{
-    display:block;padding:22px 0;border-bottom:1px solid var(--line);
-    transition:.15s;
-  }
-  .post:hover{padding-left:10px}
-  .post .meta{
-    font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted);
-    display:flex;gap:14px;margin-bottom:8px;flex-wrap:wrap;
-  }
-  .post .meta .cat{color:var(--amber)}
-  .post h2{
-    font-family:"Newsreader",serif;font-weight:600;font-size:26px;
-    line-height:1.2;color:var(--text);transition:.15s;
-  }
-  .post:hover h2{color:var(--amber)}
-  .post p{color:var(--muted);font-size:16px;margin-top:6px}
+  @keyframes rise{to{opacity:1;transform:translateY(0)}}
+  h1,.tagline{transform:translateY(14px)}
 
+  /* footer */
   footer{
-    border-top:1px solid var(--line);padding:28px 0 48px;
-    font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted);
-    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+    position:relative;z-index:2;
+    padding:26px 40px;text-align:center;
+    font-size:13px;color:var(--muted);letter-spacing:.3px;
   }
-  footer a:hover{color:var(--amber)}
 
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important}
+    h1,.tagline{opacity:1;transform:none}
+  }
   @media(max-width:520px){
-    body{font-size:17px}
-    .post h2{font-size:22px}
+    .topbar{padding:22px}
+    .topbar nav{gap:22px}
+    .topbar nav a{font-size:14px}
   }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header>
-    <a href="index.html" class="brand"><span class="prompt">~/</span>qlashx<span class="cursor"></span></a>
-    <div class="tag">android reversing · mobile security · ctf writeups</div>
+  <div class="topbar">
+    <div class="status"><span class="dot"></span> online</div>
     <nav>
-      <a href="index.html">home</a>
-      <a href="https://github.com/qlashx" target="_blank" rel="noopener">github</a>
-      <a href="#posts">posts</a>
+      <a href="index.html" class="active">home</a>
+      <a class="soon" title="coming soon">profile</a>
+      <a class="soon" title="coming soon">posts</a>
     </nav>
-  </header>
+  </div>
 
-  <p class="intro">
-    Notes from taking apart Android apps — <b>deep links, Frida hooks, native flag builders,</b>
-    and whatever else the target throws up. Mostly writeups, written the way I'd want to read them.
-  </p>
+  <main>
+    <h1><span class="prompt">~/</span>qlashx<span class="cursor"></span></h1>
 
-  <section class="posts" id="posts">
-    <div class="list-label">Writeups</div>
+    <p class="tagline">
+      just a <span class="type">noob pentester</span> who wants to develop himself.
+    </p>
+  </main>
 
-    <a class="post" href="posts/strings-challenge.html">
-      <div class="meta">
-        <span class="cat">mobile / android</span>
-        <span>frida · deep links · jni</span>
-      </div>
-      <h2>Strings — Mobile Hacking Lab</h2>
-      <p>An exported activity, an uninitialized date check, an AES gate, and a native <code>getflag()</code> that hides the real flag in memory.</p>
-    </a>
+  <footer>© qlashx — ahmed osama</footer>
 
-  </section>
-
-  <footer>
-    <span>© qlashx</span>
-    <span><a href="https://github.com/qlashx" target="_blank" rel="noopener">github.com/qlashx</a></span>
-  </footer>
-
-</div>
 </body>
 </html>
