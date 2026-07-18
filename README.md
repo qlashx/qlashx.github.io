@@ -138,7 +138,7 @@
     </p>
   </main>
 
-  <footer>© qlashx — ahmed osama</footer>
+  <footer>© qlashx</footer>
 
 </body>
 </html>
